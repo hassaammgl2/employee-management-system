@@ -1,25 +1,27 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import type React from "react";
-import Topbar from "./Topbar";
-import Sidebar from "./Sidebar";
-import { ModeToggle } from "@/components/mode-toggle";
+// import { SidebarProvider } from "@/components/ui/sidebar";
+import {Topbar} from "./Topbar";
+import {Sidebar} from "./Sidebar";
+import { Outlet, Navigate } from "react-router";
+// import { ModeToggle } from "@/components/mode-toggle";
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
+const AppLayout = () => {
+  //  const { isAuthenticated } = useAuthStore();
+   const isAuthenticated = true;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
-    <SidebarProvider>
-      <div className="h-screen w-screen flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Topbar />
-          <main className="flex-1 p-4 md:p-6 overflow-auto">
-            <div className="max-w-7xl mx-auto">{children}</div>
-          </main>
-        </div>
-        <div className="fixed bottom-6 right-6">
-          <ModeToggle />
-        </div>
+    <div className="flex min-h-screen w-full bg-background">
+      <Sidebar />
+      <div className="flex flex-1 flex-col pl-64">
+        <Topbar />
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
