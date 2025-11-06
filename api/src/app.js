@@ -5,6 +5,8 @@ import { ENVS } from "./utils/constants.js";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
+import employeeRoutes from "./routes/employee.routes.js";
+import departmentRoutes from "./routes/department.routes.js";
 
 const app = express();
 
@@ -49,6 +51,12 @@ app.get("/", (req, res) => {
 });
 // auth routes
 app.use("/api", authRoutes);
+
+// employee routes
+app.use("/api/employees", employeeRoutes);
+
+// department routes
+app.use("/api/departments", departmentRoutes);
 
 // error handlers
 app.use(errorHandler);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,13 +29,18 @@ import { Badge } from "@/components/ui/badge";
 import { useEmployeeStore } from "@/store/employee";
 import { useDepartmentStore } from "@/store/department";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import type { Employee, EmployeeStatus } from "@/types";
+import { Spinner } from "@/components/ui/Loader/spinner";
 
 export default function EmployeeManagement() {
-  const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployeeStore();
+  const { employees, isLoading, fetchEmployees, addEmployee, updateEmployee, deleteEmployee } = useEmployeeStore();
   const { departments } = useDepartmentStore();
-  const { toast } = useToast();
+  // const { toast } = useToast();
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
   
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,6 +48,7 @@ export default function EmployeeManagement() {
   
   const [formData, setFormData] = useState({
     name: "",
+    fatherName: "",
     email: "",
     role: "",
     department: "",
@@ -53,6 +59,7 @@ export default function EmployeeManagement() {
 
   const filteredEmployees = employees.filter((emp) =>
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.fatherName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.role.toLowerCase().includes(searchQuery.toLowerCase())
@@ -63,6 +70,7 @@ export default function EmployeeManagement() {
       setEditingEmployee(employee);
       setFormData({
         name: employee.name,
+        fatherName: employee.fatherName,
         email: employee.email,
         role: employee.role,
         department: employee.department,
@@ -74,6 +82,7 @@ export default function EmployeeManagement() {
       setEditingEmployee(null);
       setFormData({
         name: "",
+        fatherName: "",
         email: "",
         role: "",
         department: "",
@@ -85,11 +94,12 @@ export default function EmployeeManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const employeeData = {
       name: formData.name,
+      fatherName: formData.fatherName,
       email: formData.email,
       role: formData.role,
       department: formData.department,
@@ -98,29 +108,22 @@ export default function EmployeeManagement() {
       joinDate: formData.joinDate,
     };
 
+    let success = false;
     if (editingEmployee) {
-      updateEmployee(editingEmployee.id, employeeData);
-      toast({
-        title: "Employee updated",
-        description: `${formData.name} has been updated successfully.`,
-      });
+      success = await updateEmployee(editingEmployee.id, employeeData);
     } else {
-      addEmployee(employeeData);
-      toast({
-        title: "Employee added",
-        description: `${formData.name} has been added successfully.`,
-      });
+      success = await addEmployee(employeeData);
     }
     
-    setIsDialogOpen(false);
+    if (success) {
+      setIsDialogOpen(false);
+    }
   };
 
-  const handleDelete = (employee: Employee) => {
-    deleteEmployee(employee.id);
-    toast({
-      title: "Employee deleted",
-      description: `${employee.name} has been removed.`,
-    });
+  const handleDelete = async (employee: Employee) => {
+    if (window.confirm(`Are you sure you want to delete ${employee.name}?`)) {
+      await deleteEmployee(employee.id);
+    }
   };
 
   return (
@@ -158,6 +161,16 @@ export default function EmployeeManagement() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="fatherName">Father's Name</Label>
+                <Input
+                  id="fatherName"
+                  value={formData.fatherName}
+                  onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
                   required
                 />
               </div>
@@ -275,6 +288,7 @@ export default function EmployeeManagement() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Father's Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Department</TableHead>
@@ -284,46 +298,65 @@ export default function EmployeeManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredEmployees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell className="font-medium">{employee.name}</TableCell>
-                <TableCell>{employee.email}</TableCell>
-                <TableCell>{employee.role}</TableCell>
-                <TableCell>{employee.department}</TableCell>
-                <TableCell>${employee.salary.toLocaleString()}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      employee.status === "active"
-                        ? "default"
-                        : employee.status === "on_leave"
-                        ? "secondary"
-                        : "destructive"
-                    }
-                  >
-                    {employee.status.replace("_", " ").toUpperCase()}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenDialog(employee)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(employee)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8">
+                  <div className="flex justify-center items-center">
+                    <Spinner variant="ellipsis" />
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filteredEmployees.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  No employees found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredEmployees.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell className="font-medium">{employee.name}</TableCell>
+                  <TableCell>{employee.fatherName}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
+                  <TableCell>{employee.role}</TableCell>
+                  <TableCell>{employee.department}</TableCell>
+                  <TableCell>${employee.salary.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        employee.status === "active"
+                          ? "default"
+                          : employee.status === "on_leave"
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {employee.status.replace("_", " ").toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenDialog(employee)}
+                        disabled={isLoading}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(employee)}
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

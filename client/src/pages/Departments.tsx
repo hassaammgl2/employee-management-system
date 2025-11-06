@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,16 +14,26 @@ import {
 } from "@/components/ui/dialog";
 import { useDepartmentStore } from "@/store/department";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import type { Department } from "@/types";
+import { Spinner } from "@/components/ui/Loader/spinner";
 
 export default function Departments() {
-  const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentStore();
-  const { toast } = useToast();
-  
+  const {
+    departments,
+    isLoading,
+    fetchDepartments,
+    addDepartment,
+    updateDepartment,
+    deleteDepartment,
+  } = useDepartmentStore();
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     head: "",
@@ -52,9 +62,9 @@ export default function Departments() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const deptData = {
       name: formData.name,
       head: formData.head,
@@ -62,29 +72,22 @@ export default function Departments() {
       description: formData.description,
     };
 
+    let success = false;
     if (editingDept) {
-      updateDepartment(editingDept.id, deptData);
-      toast({
-        title: "Department updated",
-        description: `${formData.name} has been updated successfully.`,
-      });
+      success = await updateDepartment(editingDept.id, deptData);
     } else {
-      addDepartment(deptData);
-      toast({
-        title: "Department added",
-        description: `${formData.name} has been added successfully.`,
-      });
+      success = await addDepartment(deptData);
     }
-    
-    setIsDialogOpen(false);
+
+    if (success) {
+      setIsDialogOpen(false);
+    }
   };
 
-  const handleDelete = (department: Department) => {
-    deleteDepartment(department.id);
-    toast({
-      title: "Department deleted",
-      description: `${department.name} has been removed.`,
-    });
+  const handleDelete = async (department: Department) => {
+    if (window.confirm(`Are you sure you want to delete ${department.name}?`)) {
+      await deleteDepartment(department.id);
+    }
   };
 
   return (
@@ -96,7 +99,7 @@ export default function Departments() {
             Manage your organization's departments
           </p>
         </div>
-        
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -121,43 +124,49 @@ export default function Departments() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="head">Department Head</Label>
                 <Input
                   id="head"
                   value={formData.head}
-                  onChange={(e) => setFormData({ ...formData, head: e.target.value })}
-                  required
+                  onChange={(e) =>
+                    setFormData({ ...formData, head: e.target.value })
+                  }
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="employeeCount">Employee Count</Label>
                 <Input
                   id="employeeCount"
                   type="number"
+                  min="0"
                   value={formData.employeeCount}
-                  onChange={(e) => setFormData({ ...formData, employeeCount: e.target.value })}
-                  required
+                  onChange={(e) =>
+                    setFormData({ ...formData, employeeCount: e.target.value })
+                  }
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   rows={4}
                 />
               </div>
-              
+
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="flex-1">
                   {editingDept ? "Update" : "Add"} Department
@@ -176,46 +185,70 @@ export default function Departments() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {departments.map((department) => (
-          <Card key={department.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-bold">{department.name}</CardTitle>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleOpenDialog(department)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(department)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Department Head</p>
-                <p className="font-medium">{department.head}</p>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  {department.employeeCount} {department.employeeCount === 1 ? "Employee" : "Employees"}
-                </span>
-              </div>
-              
-              <div>
-                <p className="text-sm text-muted-foreground">{department.description}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {isLoading ? (
+          <div className="col-span-full flex justify-center items-center py-12">
+            <Spinner variant="ellipsis" />
+          </div>
+        ) : departments.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-muted-foreground">
+            No departments found
+          </div>
+        ) : (
+          departments.map((department) => (
+            <Card
+              key={department.id}
+              className="hover:shadow-lg transition-shadow"
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold">
+                  {department.name}
+                </CardTitle>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleOpenDialog(department)}
+                    disabled={isLoading}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(department)}
+                    disabled={isLoading}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Department Head
+                  </p>
+                  <p className="font-medium">
+                    {department.head || "Not assigned"}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {department.employeeCount}{" "}
+                    {department.employeeCount === 1 ? "Employee" : "Employees"}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {department.description || "No description"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );
