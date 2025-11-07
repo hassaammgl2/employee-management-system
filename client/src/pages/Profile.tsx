@@ -117,12 +117,6 @@ export default function Profile() {
             <span className="text-sm text-muted-foreground">User ID</span>
             <span className="font-mono text-sm">{user?.id}</span>
           </div>
-          {user?.id && (
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-muted-foreground">Employee ID</span>
-              <span className="font-mono text-sm">{user.id}</span>
-            </div>
-          )}
           {user?.employeeCode && (
             <div className="flex items-center justify-between py-2">
               <span className="text-sm text-muted-foreground">
