@@ -1,10 +1,10 @@
 import User from "../models/user.model.js";
 import { TokenService } from "../utils/Jwt.js";
 import { AppError } from "../utils/AppError.js";
-import { DTO } from "../utils/Dto.js";
+import { dto } from "../utils/Dto.js";
 
-export class AuthService {
-	static async #generateAuthTokens(user) {
+class AuthService {
+	async #generateAuthTokens(user) {
 		const accessToken = TokenService.generateAccessToken(
 			user._id.toString()
 		);
@@ -21,7 +21,7 @@ export class AuthService {
 		};
 	}
 
-	static async register(data) {
+	async register(data) {
 		const { email, name, fatherName, password, role, employeeCode } = data;
 
 		// Check if email already exists
@@ -45,11 +45,11 @@ export class AuthService {
 		const tokens = await this.#generateAuthTokens(user);
 		return {
 			...tokens,
-			user: DTO.userDto(user),
+			user: dto.userDto(user),
 		};
 	}
 
-	static async login(data) {
+	async login(data) {
 		const { email, password, employeeCode } = data;
 
 		const user = await User.findOne({ email, employeeCode }).select(
@@ -85,16 +85,16 @@ export class AuthService {
 		const tokens = await this.#generateAuthTokens(user);
 		return {
 			...tokens,
-			user: DTO.userDto(user),
+			user: dto.userDto(user),
 		};
 	}
 
-	static async logout(_id) {
+	async logout(_id) {
 		await User.findByIdAndUpdate(_id, { refreshToken: null });
 		return true;
 	}
 
-	static async refresh(incomingRefreshToken) {
+	async refresh(incomingRefreshToken) {
 		if (!incomingRefreshToken) {
 			throw new AppError("Refresh token is required", 401);
 		}
@@ -112,7 +112,10 @@ export class AuthService {
 		const tokens = await this.#generateAuthTokens(user);
 		return {
 			...tokens,
-			user: DTO.userDto(user),
+			user: dto.userDto(user),
 		};
 	}
 }
+
+
+export const authService = new AuthService()

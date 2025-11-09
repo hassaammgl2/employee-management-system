@@ -180,32 +180,32 @@ const AddEmployee = () => {
 
           <div className="flex justify-between items-center">
             <div>
-                 {/* Role */}
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Input
-              id="role"
-              placeholder="Enter employee role..."
-              value={data.role}
-              onChange={(e) => setData({ ...data, role: e.target.value })}
-              required
-            />
-          </div>
+              {/* Role */}
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Input
+                  id="role"
+                  placeholder="Enter employee role..."
+                  value={data.role}
+                  onChange={(e) => setData({ ...data, role: e.target.value })}
+                  required
+                />
+              </div>
 
-          {/* Salary */}
-          <div className="space-y-2">
-            <Label htmlFor="salary">Salary</Label>
-            <Input
-              id="salary"
-              type="number"
-              placeholder="Enter employee salary..."
-              value={data.salary}
-              onChange={(e) =>
-                setData({ ...data, salary: Number(e.target.value) })
-              }
-              required
-            />
-          </div>
+              {/* Salary */}
+              <div className="space-y-2">
+                <Label htmlFor="salary">Salary</Label>
+                <Input
+                  id="salary"
+                  type="number"
+                  placeholder="Enter employee salary..."
+                  value={data.salary}
+                  onChange={(e) =>
+                    setData({ ...data, salary: Number(e.target.value) })
+                  }
+                  required
+                />
+              </div>
               {/* Department */}
               <div className="space-y-2">
                 <Label htmlFor="department">Department</Label>

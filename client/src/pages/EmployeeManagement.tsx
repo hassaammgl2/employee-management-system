@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,7 +23,14 @@ import {
 import type { Employee as EmployeeType } from "@/types";
 
 export default function EmployeeManagement() {
-  const { employees, isLoading } = useEmployeeStore();
+  const { employees, isLoading, fetchEmployees } = useEmployeeStore();
+
+  useEffect(() => {
+    (async () => {
+      await fetchEmployees();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
 

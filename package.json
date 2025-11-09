@@ -1,0 +1,23 @@
+{
+  "name": "employee-management-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"yellow,cyan\" \"bun run server\" \"bun run client\"",
+    "server": "cd ./api && bun dev",
+    "client": "cd ./client && bun dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassaammgl/employee-management-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hassaammgl/employee-management-system/issues"
+  },
+  "homepage": "https://github.com/hassaammgl/employee-management-system#readme"
+}

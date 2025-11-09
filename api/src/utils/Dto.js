@@ -1,5 +1,5 @@
-export class DTO {
-	static userDto(user) {
+class DTO {
+	userDto(user) {
 		return {
 			_id: user._id,
 			name: user.name,
@@ -12,7 +12,7 @@ export class DTO {
 		};
 	}
 
-	static employeeDto(employeeProfile, user) {
+	employeeDto(employeeProfile, user) {
 		return {
 			id: employeeProfile._id?.toString() || user?._id?.toString(),
 			_id: employeeProfile._id?.toString() || user?._id?.toString(),
@@ -32,3 +32,5 @@ export class DTO {
 		};
 	}
 }
+
+export const dto = new DTO();

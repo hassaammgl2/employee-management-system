@@ -113,14 +113,11 @@ export default function Profile() {
               {user?.role === "admin" ? "Administrator" : "Employee"}
             </span>
           </div>
-          <div className="flex items-center justify-between py-2 border-b">
-            <span className="text-sm text-muted-foreground">User ID</span>
-            <span className="font-mono text-sm">{user?.id}</span>
-          </div>
+      
           {user?.employeeCode && (
             <div className="flex items-center justify-between py-2">
               <span className="text-sm text-muted-foreground">
-                Employee Code
+                {user?.role === "admin" ? "Admin" : "Employee"} Code
               </span>
               <span className="font-mono text-sm">{user.employeeCode}</span>
             </div>

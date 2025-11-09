@@ -2,29 +2,23 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
-import type { User, Role } from "@/types";
-import { toast } from "@/hooks/use-toast";
+import type { User } from "@/types";
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  login: ({
-    email,
-    password,
-    employeeCode,
-  }: {
-    email: string;
-    password: string;
-    employeeCode: string;
-  }) => Promise<boolean>;
+  error: string | null;
   register: (payload: {
     name: string;
     fatherName: string;
     email: string;
     password: string;
-    role: Role;
-    employeeId?: string;
-  }) => Promise<boolean>;
+  }) => Promise<void>;
+  login: (payload: {
+    email: string;
+    password: string;
+    employeeCode: string;
+  }) => Promise<void>;
   me: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => void;
@@ -36,11 +30,38 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const getErrorMessage = (err: any): string => {
+  return (
+    err?.response?.data?.message ||
+    err?.message ||
+    "Something went wrong. Please try again."
+  );
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
+      error: null,
       user: null,
       isAuthenticated: false,
+
+      register: async ({ email, fatherName, name, password }) => {
+        try {
+          set({ error: null });
+
+          const { data } = await api.post("/register", {
+            email,
+            fatherName,
+            name,
+            password,
+          });
+          set({ user: data.user, isAuthenticated: true });
+        } catch (err: any) {
+          const errorMessage = getErrorMessage(err);
+          set({ error: errorMessage });
+          throw new Error(errorMessage);
+        }
+      },
       login: async ({ email, password, employeeCode }) => {
         try {
           const { data } = await api.post("/login", {
@@ -60,47 +81,8 @@ export const useAuthStore = create<AuthState>()(
               } as User)
             : null;
           set({ user, isAuthenticated: !!user });
-          if (user) {
-            toast({
-              title: "Login successful",
-              description: `Welcome back, ${user.name}!`,
-            });
-          }
           return true;
         } catch {
-          toast({
-            title: "Login failed",
-            description: "Invalid credentials.",
-            variant: "destructive",
-          });
-          return false;
-        }
-      },
-      register: async (payload) => {
-        try {
-          const { data } = await api.post("/register", payload);
-          const apiUser = data?.data as any;
-          const user = apiUser
-            ? ({
-                id: apiUser._id ?? apiUser.id,
-                name: apiUser.name,
-                email: apiUser.email,
-                role: apiUser.role,
-                employeeCode: apiUser.employeeCode,
-                password: "",
-              } as User)
-            : null;
-          set({ user, isAuthenticated: !!user });
-          if (user) {
-            toast({ title: "Account created", description: "Welcome aboard!" });
-          }
-          return true;
-        } catch {
-          toast({
-            title: "Signup failed",
-            description: "Please verify your details.",
-            variant: "destructive",
-          });
           return false;
         }
       },
@@ -136,29 +118,14 @@ export const useAuthStore = create<AuthState>()(
                 } as User)
               : null;
             set({ user, isAuthenticated: !!user });
-            if (user) {
-              toast({
-                title: "Session restored",
-                description: `Welcome back, ${user.name}!`,
-              });
-            }
           } catch {
             set({ user: null, isAuthenticated: false });
-            toast({
-              title: "Session expired",
-              description: "Please sign in again.",
-              variant: "destructive",
-            });
           }
         }
       },
       logout: async () => {
         try {
           await api.post("/logout");
-          toast({
-            title: "Logged out",
-            description: "You have been signed out.",
-          });
         } finally {
           set({ user: null, isAuthenticated: false });
         }

@@ -2,7 +2,6 @@
 import { create } from "zustand";
 import axios from "axios";
 import type { Employee } from "@/types";
-import { toast } from "@/hooks/use-toast";
 
 interface EmployeeState {
   employees: Employee[];
@@ -31,7 +30,7 @@ const transformEmployee = (apiEmployee: any): Employee => {
     name: apiEmployee.name || "",
     fatherName: apiEmployee.fatherName || "",
     email: apiEmployee.email || "",
-    role: apiEmployee.role || "",
+    role: apiEmployee.role || apiEmployee.jobTitle || apiEmployee.roleTitle || "",
     department: apiEmployee.department || "",
     salary: apiEmployee.salary || 0,
     status: apiEmployee.status || "active",
@@ -39,6 +38,7 @@ const transformEmployee = (apiEmployee: any): Employee => {
     avatar: apiEmployee.avatar || undefined,
   };
 };
+
 
 export const useEmployeeStore = create<EmployeeState>((set) => ({
   employees: [],
@@ -48,18 +48,15 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
   fetchEmployees: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.get("/employees");
+      const { data } = await api.get("/employees", {
+        headers: { "Cache-Control": "no-cache" },
+      });
       const employees = (data?.data || []).map(transformEmployee);
       set({ employees, isLoading: false, error: null });
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.message || "Failed to fetch employees";
       set({ isLoading: false, error: errorMessage });
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
     }
   },
 
@@ -87,20 +84,11 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
         error: null,
       }));
 
-      toast({
-        title: "Success",
-        description: "Employee added successfully",
-      });
       return true;
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.message || "Failed to add employee";
       set({ isLoading: false, error: errorMessage });
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
       return false;
     }
   },

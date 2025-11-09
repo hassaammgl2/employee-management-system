@@ -24,10 +24,6 @@ export const registerSchema = Joi.object({
 		"string.empty": "Email is required",
 		"any.required": "Email is required",
 	}),
-	role: Joi.string().valid("admin").required().messages({
-		"any.only": "Role must be either 'admin' or 'employee'",
-		"any.required": "Role is required",
-	}),
 	password: Joi.string().min(8).pattern(passwordRegex).required().messages({
 		"string.empty": "Password is required",
 		"string.min": "Password must be at least 8 characters long",

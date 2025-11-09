@@ -2,10 +2,10 @@ import User from "../models/user.model.js";
 import Employee from "../models/employee.model.js";
 import Department from "../models/department.model.js";
 import { AppError } from "../utils/AppError.js";
-import { DTO } from "../utils/Dto.js";
+import { dto } from "../utils/Dto.js";
 
 export class EmployeeService {
-	static async getAllEmployees() {
+	static async getAllEmployees() { 
 		const employeeProfiles = await Employee.find()
 			.populate("user", "name fatherName email employeeCode")
 			.populate("department", "name")
@@ -13,7 +13,7 @@ export class EmployeeService {
 
 		return employeeProfiles.map((profile) => {
 			const user = profile.user;
-			return DTO.employeeDto(profile, user);
+			return dto.employeeDto(profile, user);
 		});
 	}
 
@@ -26,7 +26,7 @@ export class EmployeeService {
 			throw new AppError("Employee not found", 404);
 		}
 
-		return DTO.employeeDto(employeeProfile, employeeProfile.user);
+		return dto.employeeDto(employeeProfile, employeeProfile.user);
 	}
 
 	static async createEmployee(data) {
@@ -98,7 +98,7 @@ export class EmployeeService {
 		);
 		await employeeProfile.populate("department", "name");
 
-		return DTO.employeeDto(employeeProfile, user);
+		return dto.employeeDto(employeeProfile, user);
 	}
 
 	static async updateEmployee(id, data) {
@@ -193,7 +193,7 @@ export class EmployeeService {
 		// Refresh user data
 		const updatedUser = await User.findById(employeeProfile.user._id);
 
-		return DTO.employeeDto(employeeProfile, updatedUser);
+		return dto.employeeDto(employeeProfile, updatedUser);
 	}
 
 	static async deleteEmployee(id) {
