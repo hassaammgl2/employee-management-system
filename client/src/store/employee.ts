@@ -9,8 +9,11 @@ interface EmployeeState {
   isLoading: boolean;
   error: string | null;
   fetchEmployees: () => Promise<void>;
-  addEmployee: (employee: Omit<Employee, "id"> & { fatherName?: string; password?: string }) => Promise<boolean>;
-  updateEmployee: (id: string, updates: Partial<Employee> & { fatherName?: string }) => Promise<boolean>;
+  addEmployee: (employee: Partial<Employee>) => Promise<boolean>;
+  updateEmployee: (
+    id: string,
+    updates: Partial<Employee> & { fatherName?: string }
+  ) => Promise<boolean>;
   deleteEmployee: (id: string) => Promise<boolean>;
   resetEmployees: () => void;
 }
@@ -49,7 +52,8 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
       const employees = (data?.data || []).map(transformEmployee);
       set({ employees, isLoading: false, error: null });
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to fetch employees";
+      const errorMessage =
+        error?.response?.data?.message || "Failed to fetch employees";
       set({ isLoading: false, error: errorMessage });
       toast({
         title: "Error",
@@ -62,42 +66,21 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
   addEmployee: async (employee) => {
     set({ isLoading: true, error: null });
     try {
-      // Transform client employee data to API format
-      // Generate a secure temporary password that meets validation requirements
-      const generateTempPassword = () => {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@$!%*?&";
-        let password = "";
-        // Ensure at least one of each required character type
-        password += "A"; // uppercase
-        password += "a"; // lowercase
-        password += "1"; // number
-        password += "@"; // special char
-        // Add random characters to meet minimum length
-        for (let i = 0; i < 4; i++) {
-          password += chars[Math.floor(Math.random() * chars.length)];
-        }
-        // Shuffle the password
-        return password.split("").sort(() => Math.random() - 0.5).join("");
-      };
-
-      const payload: any = {
+      const payload = {
         name: employee.name,
-        fatherName: employee.fatherName || "",
+        fatherName: employee.fatherName,
         email: employee.email,
-        password: employee.password || generateTempPassword(),
-        roleTitle: employee.role,
+        password: employee.password,
+        jobTitle: employee.role,
         department: employee.department,
         salary: employee.salary,
-        status: employee.status || "active",
-        joinDate: employee.joinDate || new Date().toISOString().split("T")[0],
+        status: employee.status,
+        joinDate: employee.joinDate,
       };
-      if (employee.avatar) {
-        payload.avatar = employee.avatar;
-      }
 
       const { data } = await api.post("/employees", payload);
       const newEmployee = transformEmployee(data?.data);
-      
+
       set((state) => ({
         employees: [...state.employees, newEmployee],
         isLoading: false,
@@ -110,7 +93,8 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
       });
       return true;
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to add employee";
+      const errorMessage =
+        error?.response?.data?.message || "Failed to add employee";
       set({ isLoading: false, error: errorMessage });
       toast({
         title: "Error",
@@ -153,7 +137,8 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
       });
       return true;
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to update employee";
+      const errorMessage =
+        error?.response?.data?.message || "Failed to update employee";
       set({ isLoading: false, error: errorMessage });
       toast({
         title: "Error",
@@ -181,7 +166,8 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
       });
       return true;
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to delete employee";
+      const errorMessage =
+        error?.response?.data?.message || "Failed to delete employee";
       set({ isLoading: false, error: errorMessage });
       toast({
         title: "Error",

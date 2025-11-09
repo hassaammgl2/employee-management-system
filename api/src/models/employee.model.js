@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const employeeProfileSchema = new mongoose.Schema(
+const employeeSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -12,7 +12,7 @@ const employeeProfileSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Department"
     },
-    roleTitle: {
+    jobTitle: {
       type: String,
       trim: true
     },
@@ -31,7 +31,5 @@ const employeeProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const EmployeeProfile = mongoose.model("EmployeeProfile", employeeProfileSchema);
+const EmployeeProfile = mongoose.model("Employee", employeeSchema);
 export default EmployeeProfile;
-
-

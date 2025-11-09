@@ -27,8 +27,8 @@ export default function Register() {
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    const { name, email, fatherName, password } = data;
     e.preventDefault();
+    const { name, email, fatherName, password } = data;
     const ok = await register({
       name,
       fatherName,

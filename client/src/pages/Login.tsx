@@ -34,7 +34,7 @@ export default function Login() {
       password,
       employeeCode,
     });
-    
+
     if (ok) {
       // Get the updated user from the store after login
       const updatedUser = useAuthStore.getState().user;
@@ -43,7 +43,9 @@ export default function Login() {
         description: `Welcome back!`,
       });
       navigate(
-        updatedUser?.role === "admin" ? "/admin/dashboard" : "/employee/dashboard"
+        updatedUser?.role === "admin"
+          ? "/admin/dashboard"
+          : "/employee/dashboard"
       );
     } else {
       toast({
@@ -69,7 +71,7 @@ export default function Login() {
           <CardDescription>Sign in to access your dashboard</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form className="space-y-4">
             <m.div
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -118,7 +120,7 @@ export default function Login() {
               />
             </m.div>
 
-            <Button type="submit" className="w-full">
+            <Button onClick={handleSubmit} type="submit" className="w-full">
               Sign In
             </Button>
           </form>

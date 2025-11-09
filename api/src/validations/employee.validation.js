@@ -18,30 +18,37 @@ export const createEmployeeSchema = Joi.object({
 		"string.empty": "Email is required",
 		"any.required": "Email is required",
 	}),
-	password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_@$!%*?&])[A-Za-z\d_@$!%*?&]{8,}$/).required().messages({
-		"string.empty": "Password is required",
-		"string.min": "Password must be at least 8 characters long",
-		"string.pattern.base": "Password must contain at least: 1 uppercase, 1 lowercase, 1 number, 1 special character (_@$!%*?&), and be 8+ characters long.",
-		"any.required": "Password is required",
-	}),
-	roleTitle: Joi.string().trim().min(2).max(100).required().messages({
+	password: Joi.string()
+		.min(8)
+		.pattern(
+			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_@$!%*?&])[A-Za-z\d_@$!%*?&]{8,}$/
+		)
+		.required()
+		.messages({
+			"string.empty": "Password is required",
+			"string.min": "Password must be at least 8 characters long",
+			"string.pattern.base":
+				"Password must contain at least: 1 uppercase, 1 lowercase, 1 number, 1 special character (_@$!%*?&), and be 8+ characters long.",
+			"any.required": "Password is required",
+		}),
+	jobTitle: Joi.string().trim().min(2).max(100).required().messages({
 		"string.empty": "Role title is required",
 		"string.min": "Role title must be at least 2 characters long",
 		"string.max": "Role title cannot exceed 100 characters",
 		"any.required": "Role title is required",
 	}),
-	department: Joi.string().trim().required().messages({
-		"string.empty": "Department is required",
-		"any.required": "Department is required",
-	}),
+	department: Joi.string().trim().optional().allow(""),
 	salary: Joi.number().min(0).required().messages({
 		"number.base": "Salary must be a number",
 		"number.min": "Salary must be at least 0",
 		"any.required": "Salary is required",
 	}),
-	status: Joi.string().valid("active", "on_leave", "terminated").default("active").messages({
-		"any.only": "Status must be one of: active, on_leave, terminated",
-	}),
+	status: Joi.string()
+		.valid("active", "on_leave", "terminated")
+		.default("active")
+		.messages({
+			"any.only": "Status must be one of: active, on_leave, terminated",
+		}),
 	joinDate: Joi.date().iso().required().messages({
 		"date.base": "Join date must be a valid date",
 		"date.format": "Join date must be in ISO format (YYYY-MM-DD)",
@@ -75,9 +82,12 @@ export const updateEmployeeSchema = Joi.object({
 		"number.base": "Salary must be a number",
 		"number.min": "Salary must be at least 0",
 	}),
-	status: Joi.string().valid("active", "on_leave", "terminated").optional().messages({
-		"any.only": "Status must be one of: active, on_leave, terminated",
-	}),
+	status: Joi.string()
+		.valid("active", "on_leave", "terminated")
+		.optional()
+		.messages({
+			"any.only": "Status must be one of: active, on_leave, terminated",
+		}),
 	joinDate: Joi.date().iso().optional().messages({
 		"date.base": "Join date must be a valid date",
 		"date.format": "Join date must be in ISO format (YYYY-MM-DD)",
@@ -86,4 +96,3 @@ export const updateEmployeeSchema = Joi.object({
 		"string.uri": "Avatar must be a valid URL",
 	}),
 });
-

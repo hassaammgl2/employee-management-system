@@ -19,6 +19,7 @@ export interface Employee {
   role: string;
   department: string;
   salary: number;
+  password?: string;
   status: EmployeeStatus;
   joinDate: string;
   avatar?: string;

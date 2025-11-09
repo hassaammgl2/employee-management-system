@@ -1,12 +1,12 @@
 import User from "../models/user.model.js";
-import EmployeeProfile from "../models/employeeProfile.model.js";
+import Employee from "../models/employee.model.js";
 import Department from "../models/department.model.js";
 import { AppError } from "../utils/AppError.js";
 import { DTO } from "../utils/Dto.js";
 
 export class EmployeeService {
 	static async getAllEmployees() {
-		const employeeProfiles = await EmployeeProfile.find()
+		const employeeProfiles = await Employee.find()
 			.populate("user", "name fatherName email employeeCode")
 			.populate("department", "name")
 			.sort({ createdAt: -1 });
@@ -18,7 +18,7 @@ export class EmployeeService {
 	}
 
 	static async getEmployeeById(id) {
-		const employeeProfile = await EmployeeProfile.findById(id)
+		const employeeProfile = await Employee.findById(id)
 			.populate("user", "name fatherName email employeeCode")
 			.populate("department", "name");
 
@@ -30,7 +30,18 @@ export class EmployeeService {
 	}
 
 	static async createEmployee(data) {
-		const { name, fatherName, email, password, roleTitle, department, salary, status, joinDate, avatar } = data;
+		const {
+			name,
+			fatherName,
+			email,
+			password,
+			jobTitle,
+			department,
+			salary,
+			status,
+			joinDate,
+			avatar,
+		} = data;
 
 		// Check if email already exists
 		const existingUser = await User.findOne({ email });
@@ -40,16 +51,15 @@ export class EmployeeService {
 
 		// Find or validate department
 		let departmentDoc = null;
-		if (department) {
+		if (department && department !== "") {
 			departmentDoc = await Department.findOne({ name: department });
 			if (!departmentDoc) {
-				// Create department if it doesn't exist
 				departmentDoc = await Department.create({ name: department });
 			}
 		}
 
 		// Generate employee code
-		const employeeCode = `EMP${Math.floor(Math.random() * 99999).toString().padStart(5, "0")}`;
+		const employeeCode = `E${Math.floor(Math.random() * 99999)}`;
 
 		// Create user
 		const user = new User({
@@ -63,10 +73,10 @@ export class EmployeeService {
 		await user.save();
 
 		// Create employee profile
-		const employeeProfile = new EmployeeProfile({
+		const employeeProfile = new Employee({
 			user: user._id,
 			department: departmentDoc?._id || null,
-			roleTitle,
+			jobTitle: jobTitle,
 			salary: salary || 0,
 			status: status || "active",
 			joinDate: joinDate ? new Date(joinDate) : new Date(),
@@ -82,20 +92,36 @@ export class EmployeeService {
 		}
 
 		// Populate and return
-		await employeeProfile.populate("user", "name fatherName email employeeCode");
+		await employeeProfile.populate(
+			"user",
+			"name fatherName email employeeCode"
+		);
 		await employeeProfile.populate("department", "name");
 
 		return DTO.employeeDto(employeeProfile, user);
 	}
 
 	static async updateEmployee(id, data) {
-		const employeeProfile = await EmployeeProfile.findById(id).populate("user", "name fatherName email employeeCode");
+		const employeeProfile = await Employee.findById(id).populate(
+			"user",
+			"name fatherName email employeeCode"
+		);
 
 		if (!employeeProfile) {
 			throw new AppError("Employee not found", 404);
 		}
 
-		const { name, fatherName, email, roleTitle, department, salary, status, joinDate, avatar } = data;
+		const {
+			name,
+			fatherName,
+			email,
+			roleTitle,
+			department,
+			salary,
+			status,
+			joinDate,
+			avatar,
+		} = data;
 
 		// Update user if provided
 		if (name || fatherName || email) {
@@ -104,7 +130,10 @@ export class EmployeeService {
 			if (fatherName) userUpdates.fatherName = fatherName;
 			if (email) {
 				// Check if email is already taken by another user
-				const existingUser = await User.findOne({ email, _id: { $ne: employeeProfile.user._id } });
+				const existingUser = await User.findOne({
+					email,
+					_id: { $ne: employeeProfile.user._id },
+				});
 				if (existingUser) {
 					throw new AppError("Email already in use", 400);
 				}
@@ -123,7 +152,11 @@ export class EmployeeService {
 			}
 
 			// Update employee count if department changed
-			if (employeeProfile.department && employeeProfile.department.toString() !== departmentDoc._id.toString()) {
+			if (
+				employeeProfile.department &&
+				employeeProfile.department.toString() !==
+					departmentDoc._id.toString()
+			) {
 				await Department.findByIdAndUpdate(employeeProfile.department, {
 					$inc: { employeeCount: -1 },
 				});
@@ -143,14 +176,18 @@ export class EmployeeService {
 		if (departmentDoc) profileUpdates.department = departmentDoc._id;
 		if (salary !== undefined) profileUpdates.salary = salary;
 		if (status !== undefined) profileUpdates.status = status;
-		if (joinDate !== undefined) profileUpdates.joinDate = new Date(joinDate);
+		if (joinDate !== undefined)
+			profileUpdates.joinDate = new Date(joinDate);
 		if (avatar !== undefined) profileUpdates.avatar = avatar;
 
 		Object.assign(employeeProfile, profileUpdates);
 		await employeeProfile.save();
 
 		// Populate and return
-		await employeeProfile.populate("user", "name fatherName email employeeCode");
+		await employeeProfile.populate(
+			"user",
+			"name fatherName email employeeCode"
+		);
 		await employeeProfile.populate("department", "name");
 
 		// Refresh user data
@@ -160,7 +197,7 @@ export class EmployeeService {
 	}
 
 	static async deleteEmployee(id) {
-		const employeeProfile = await EmployeeProfile.findById(id);
+		const employeeProfile = await Employee.findById(id);
 
 		if (!employeeProfile) {
 			throw new AppError("Employee not found", 404);
@@ -174,7 +211,7 @@ export class EmployeeService {
 		}
 
 		// Delete employee profile
-		await EmployeeProfile.findByIdAndDelete(id);
+		await Employee.findByIdAndDelete(id);
 
 		// Delete user
 		await User.findByIdAndDelete(employeeProfile.user);
@@ -182,4 +219,3 @@ export class EmployeeService {
 		return { message: "Employee deleted successfully" };
 	}
 }
-
