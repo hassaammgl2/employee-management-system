@@ -25,7 +25,7 @@ import {
 export default function Profile() {
   const { user, updateProfile } = useAuthStore();
   const { error, success } = useToast();
-
+  const [isOpen, setIsOpen] = useState(true);
   const [data, setData] = useState({
     name: user?.name || "",
     fatherName: user?.fatherName || "",
@@ -36,7 +36,12 @@ export default function Profile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateProfile({ ...data });
+      setIsOpen(false);
+      await updateProfile({
+        name: data.name,
+        password: data.password,
+        fatherName: data.fatherName,
+      });
       success("Your profile updated 🎉");
     } catch (err) {
       const message =
@@ -76,20 +81,6 @@ export default function Profile() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={data.email}
-                  onChange={(e) => setData({ ...data, email: e.target.value })}
-                  className="pl-9"
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="email">Father Name</Label>
               <div className="relative">
                 <UserCircle2Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -98,6 +89,22 @@ export default function Profile() {
                   onChange={(e) =>
                     setData({ ...data, fatherName: e.target.value })
                   }
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  disabled
+                  type="email"
+                  value={data.email}
+                  onChange={(e) => setData({ ...data, email: e.target.value })}
                   className="pl-9"
                   required
                 />
@@ -117,7 +124,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <Dialog>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
                 <Button>Save Changes</Button>
               </DialogTrigger>
@@ -133,6 +140,7 @@ export default function Profile() {
                       <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         id="name"
+                        type="password"
                         value={data.password}
                         onChange={(e) =>
                           setData({ ...data, password: e.target.value })

@@ -49,7 +49,6 @@ export const loginSchema = Joi.object({
 	}),
 });
 
-
 export const updateUserSchema = Joi.object({
 	name: Joi.string().trim().min(2).max(50).required().messages({
 		"string.empty": "Name is required",

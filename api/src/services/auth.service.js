@@ -116,15 +116,36 @@ class AuthService {
 		};
 	}
 
-	async updateUser(data, user) {
-		const { name, fatherName, email } = data;
-		const isUserExist = await User.findOne({ employeeCode: user.employeeCode })
-		logger.debug(JSON.stringify(isUserExist))
-		if (!isUserExist) {
+	async updateUser(data, userData) {
+		const { name, fatherName, password } = data;
+		const user = await User.findOne({
+			email: userData.email,
+			employeeCode: userData.employeeCode,
+		}).select("+password");
 
+		try {
+			const isPasswordValid = await user.verifyPassword(password);
+			if (!isPasswordValid) {
+				throw new AppError("Invalid email or password", 401);
+			}
+		} catch (err) {
+			if (err.message.includes("pchstr must be a non-empty string")) {
+				throw new AppError(
+					"Authentication system error - please contact support",
+					500
+				);
+			}
+			throw err;
 		}
+
+		user.name = name;
+		user.fatherName = fatherName;
+		await user.save();
+
+		return {
+			user: dto.userDto(user),
+		};
 	}
 }
 
-
-export const authService = new AuthService()
+export const authService = new AuthService();
