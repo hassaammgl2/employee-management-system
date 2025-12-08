@@ -3,6 +3,7 @@ import { TokenService } from "../utils/Jwt.js";
 import { AppError } from "../utils/AppError.js";
 import { dto } from "../utils/Dto.js";
 import { logger } from "../utils/logger.js";
+import { NotificationService } from "./notification.service.js";
 
 class AuthService {
 	async #generateAuthTokens(user) {
@@ -82,7 +83,25 @@ class AuthService {
 			throw err;
 		}
 
+
 		const tokens = await this.#generateAuthTokens(user);
+
+        // Notify admins about employee login
+        if (user.role === "employee") {
+            const admins = await User.find({ role: "admin" });
+            const notifications = admins.map(admin => ({
+                user: admin._id,
+                title: "Employee Login",
+                message: `${user.name} has logged in.`,
+                type: "info"
+            }));
+            
+            // Execute in background
+            Promise.all(notifications.map(n => NotificationService.createNotification(n))).catch(err => 
+                console.error("Failed to send login notifications", err)
+            );
+        }
+
 		return {
 			...tokens,
 			user: dto.userDto(user),
@@ -90,7 +109,25 @@ class AuthService {
 	}
 
 	async logout(_id) {
+        const user = await User.findById(_id);
 		await User.findByIdAndUpdate(_id, { refreshToken: null });
+
+        // Notify admins about employee logout
+        if (user && user.role === "employee") {
+            const admins = await User.find({ role: "admin" });
+            const notifications = admins.map(admin => ({
+                user: admin._id,
+                title: "Employee Logout",
+                message: `${user.name} has logged out.`,
+                type: "info"
+            }));
+            
+            // Execute in background
+            Promise.all(notifications.map(n => NotificationService.createNotification(n))).catch(err => 
+                console.error("Failed to send logout notifications", err)
+            );
+        }
+
 		return true;
 	}
 
