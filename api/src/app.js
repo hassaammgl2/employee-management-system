@@ -11,6 +11,7 @@ import taskRoutes from "./routes/task.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
+import announcementRoutes from "./routes/announcement.routes.js";
 
 const app = express();
 
@@ -75,6 +76,9 @@ app.use("/api/activities", activityRoutes);
 
 // leave routes
 app.use("/api/leaves", leaveRoutes);
+
+// announcement routes
+app.use("/api/announcements", announcementRoutes);
 
 // error handlers
 app.use(errorHandler);

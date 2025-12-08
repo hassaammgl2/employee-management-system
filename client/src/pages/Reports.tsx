@@ -42,7 +42,7 @@ export default function Reports() {
     { name: "Terminated", value: employees.filter((e) => e.status === "terminated").length },
   ];
 
-  const STATUS_COLORS = ["hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))"];
+  const STATUS_COLORS = ["hsl(142 76% 36%)", "hsl(48 96% 53%)", "hsl(0 84% 60%)"];
 
   // Department performance (mock)
   const performanceData = departments.map((dept) => ({
@@ -72,8 +72,8 @@ export default function Reports() {
       title: "Average Salary",
       value: `$${avgSalary.toLocaleString()}`,
       icon: DollarSign,
-      color: "text-success",
-      bgColor: "bg-success/10",
+      color: "text-green-600",
+      bgColor: "bg-green-600/10",
     },
     {
       title: "Total Departments",
@@ -86,8 +86,8 @@ export default function Reports() {
       title: "Monthly Expense",
       value: `$${totalSalaryExpense.toLocaleString()}`,
       icon: DollarSign,
-      color: "text-warning",
-      bgColor: "bg-warning/10",
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-600/10",
     },
   ];
 
@@ -138,17 +138,29 @@ export default function Reports() {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
+                  stroke="hsl(var(--muted-foreground))"
                 />
                 <YAxis
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `$${value / 1000}k`}
+                  stroke="hsl(var(--muted-foreground))"
                 />
                 <Tooltip
                   formatter={(value: number) => `$${value.toLocaleString()}`}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "6px"
+                  }}
                 />
-                <Bar dataKey="avgSalary" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                <Bar
+                  dataKey="avgSalary"
+                  fill="hsl(var(--primary))"
+                  radius={[8, 8, 0, 0]}
+                  maxBarSize={60}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -204,8 +216,8 @@ export default function Reports() {
                 <Radar
                   name="Satisfaction"
                   dataKey="satisfaction"
-                  stroke="hsl(var(--success))"
-                  fill="hsl(var(--success))"
+                  stroke="hsl(142 76% 36%)"
+                  fill="hsl(142 76% 36%)"
                   fillOpacity={0.3}
                 />
                 <Tooltip />
@@ -217,7 +229,7 @@ export default function Reports() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Top Earners</CardTitle>
-            <Award className="h-5 w-5 text-warning" />
+            <Award className="h-5 w-5 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -227,11 +239,10 @@ export default function Reports() {
                   className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
-                      index === 0 ? "bg-warning/20 text-warning" :
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${index === 0 ? "bg-yellow-600/20 text-yellow-600" :
                       index === 1 ? "bg-muted text-muted-foreground" :
-                      "bg-accent/20 text-accent"
-                    }`}>
+                        "bg-accent/20 text-accent"
+                      }`}>
                       {index + 1}
                     </div>
                     <div>

@@ -40,13 +40,6 @@ export const loginSchema = Joi.object({
 	password: Joi.string().required().messages({
 		"any.required": "Password is required",
 	}),
-	employeeCode: Joi.string().required().uppercase().min(6).max(6).messages({
-		"string.empty": "Employee Code is required",
-		"string.min": "Employee Code must be at least 6 characters long",
-		"string.max": "Employee Code cannot exceed 6 characters",
-		"any.required": "Employee Code is required",
-		"string.uppercase": "Employee Code is uppercase only",
-	}),
 });
 
 export const updateUserSchema = Joi.object({

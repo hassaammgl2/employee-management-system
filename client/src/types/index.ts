@@ -14,6 +14,7 @@ export interface User {
 
 export interface Employee {
   id: string;
+  userId: string;
   name: string;
   fatherName: string;
   email: string;
@@ -38,8 +39,15 @@ export interface Announcement {
   id: string;
   title: string;
   message: string;
-  date: string;
   priority: "low" | "medium" | "high";
+  createdBy: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AttendanceRecord {

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { useEmployeeStore } from "@/store/employee";
 import { useTaskStore } from "@/store/task";
+import { useAuthStore } from "@/store/auth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import type { Task } from "@/store/task";
@@ -36,10 +37,12 @@ const TaskForm = ({ isOpen, onClose, task }: TaskFormProps) => {
         assignedTo: "",
         priority: "medium",
         dueDate: "",
+        completed: false,
     });
 
     const { employees, fetchEmployees } = useEmployeeStore();
     const { addTask, updateTask, isLoading } = useTaskStore();
+    const { user } = useAuthStore();
     const { toast } = useToast();
 
     useEffect(() => {
@@ -52,6 +55,7 @@ const TaskForm = ({ isOpen, onClose, task }: TaskFormProps) => {
                     assignedTo: task.assignedTo?._id || "",
                     priority: task.priority,
                     dueDate: task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "",
+                    completed: task.completed,
                 });
             } else {
                 setFormData({
@@ -60,6 +64,7 @@ const TaskForm = ({ isOpen, onClose, task }: TaskFormProps) => {
                     assignedTo: "",
                     priority: "medium",
                     dueDate: "",
+                    completed: false,
                 });
             }
         }
@@ -76,15 +81,18 @@ const TaskForm = ({ isOpen, onClose, task }: TaskFormProps) => {
             assignedTo: formData.assignedTo,
             priority: formData.priority as "low" | "medium" | "high",
             dueDate: formData.dueDate,
+            completed: formData.completed,
         };
 
         let success = false;
         try {
             if (task) {
-                await updateTask(task.id, taskData);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await updateTask(task.id, taskData as any);
                 success = true;
             } else {
-                await addTask(taskData);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await addTask(taskData as any);
                 success = true;
             }
         } catch (error) {
@@ -131,27 +139,29 @@ const TaskForm = ({ isOpen, onClose, task }: TaskFormProps) => {
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="assignedTo">Assign To</Label>
-                        <Select
-                            value={formData.assignedTo}
-                            onValueChange={(value) =>
-                                setFormData({ ...formData, assignedTo: value })
-                            }
-                            disabled={isLoading}
-                        >
-                            <SelectTrigger id="assignedTo">
-                                <SelectValue placeholder="Select employee" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {activeEmployees.map((employee) => (
-                                    <SelectItem key={employee.id} value={employee.id}>
-                                        {employee.name} - {employee.role}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {user?.role === "admin" && (
+                        <div className="space-y-2">
+                            <Label htmlFor="assignedTo">Assign To</Label>
+                            <Select
+                                value={formData.assignedTo}
+                                onValueChange={(value) =>
+                                    setFormData({ ...formData, assignedTo: value })
+                                }
+                                disabled={isLoading}
+                            >
+                                <SelectTrigger id="assignedTo">
+                                    <SelectValue placeholder="Select employee" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {activeEmployees.map((employee) => (
+                                        <SelectItem key={employee.id} value={employee.userId}>
+                                            {employee.name} - {employee.role}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label htmlFor="priority">Priority</Label>
@@ -169,6 +179,25 @@ const TaskForm = ({ isOpen, onClose, task }: TaskFormProps) => {
                                 <SelectItem value="low">Low</SelectItem>
                                 <SelectItem value="medium">Medium</SelectItem>
                                 <SelectItem value="high">High</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select
+                            value={formData.completed ? "completed" : "pending"}
+                            onValueChange={(value) =>
+                                setFormData({ ...formData, completed: value === "completed" })
+                            }
+                            disabled={isLoading}
+                        >
+                            <SelectTrigger id="status">
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

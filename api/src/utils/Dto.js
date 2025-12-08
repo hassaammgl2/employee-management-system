@@ -15,6 +15,7 @@ class DTO {
 	employeeDto(employeeProfile, user) {
 		return {
 			id: employeeProfile._id?.toString() || user?._id?.toString(),
+            userId: user?._id?.toString(),
 			_id: employeeProfile._id?.toString() || user?._id?.toString(),
 			name: user?.name || "",
 			fatherName: user?.fatherName || "",

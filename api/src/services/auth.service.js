@@ -50,9 +50,9 @@ class AuthService {
 	}
 
 	async login(data) {
-		const { email, password, employeeCode } = data;
+		const { email, password } = data;
 
-		const user = await User.findOne({ email, employeeCode }).select(
+		const user = await User.findOne({ email }).select(
 			"+password +refreshToken"
 		);
 

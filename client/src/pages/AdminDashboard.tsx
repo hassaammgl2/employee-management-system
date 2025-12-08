@@ -143,9 +143,9 @@ export default function AdminDashboard() {
                 <Line
                   type="monotone"
                   dataKey="employees"
-                  stroke="currentColor"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "hsl(var(--primary))" }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
                   dataKey="value"
                 >
                   {attendanceData.map((_, i) => (
-                    <Cell key={i} />
+                    <Cell key={i} fill={i === 0 ? "hsl(142 76% 36%)" : i === 1 ? "hsl(0 84% 60%)" : "hsl(48 96% 53%)"} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -201,11 +201,33 @@ export default function AdminDashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" fontSize={12} tickLine={false} />
-                <YAxis fontSize={12} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="employees" radius={[6, 6, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="name"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <YAxis
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "6px"
+                  }}
+                />
+                <Bar
+                  dataKey="employees"
+                  fill="hsl(var(--primary))"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={60}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

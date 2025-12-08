@@ -5,9 +5,14 @@ import { useTaskStore } from "@/store/task";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Spinner } from "@/components/ui/Loader/spinner";
+import { Button } from "@/components/ui/button";
+import TaskForm from "@/components/forms/TaskForm";
+import type { Task } from "@/store/task";
 
 export default function EmployeeTasks() {
     const { tasks, isLoading, error, fetchTasks, toggleTask } = useTaskStore();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
 
     useEffect(() => {
         fetchTasks();
@@ -15,6 +20,11 @@ export default function EmployeeTasks() {
 
     const handleToggle = async (id: string, completed: boolean) => {
         await toggleTask(id, completed);
+    };
+
+    const handleEdit = (task: Task) => {
+        setEditingTask(task);
+        setIsFormOpen(true);
     };
 
     const getPriorityColor = (priority: string) => {
@@ -56,11 +66,6 @@ export default function EmployeeTasks() {
                     {tasks.map((task) => (
                         <Card key={task.id} className={`transition-all ${task.completed ? "opacity-60 bg-muted/50" : ""}`}>
                             <CardContent className="p-6 flex items-start gap-4">
-                                <Checkbox
-                                    checked={task.completed}
-                                    onCheckedChange={(checked) => handleToggle(task.id, checked as boolean)}
-                                    className="mt-1"
-                                />
 
                                 <div className="flex-1 space-y-2">
                                     <div className="flex items-start justify-between">
@@ -84,12 +89,28 @@ export default function EmployeeTasks() {
                                     <p className="text-sm text-muted-foreground">
                                         {task.description || "No description provided."}
                                     </p>
+
+                                    <div className="flex gap-2 mt-2">
+                                        <Button
+                                            variant={task.completed ? "outline" : "default"}
+                                            size="sm"
+                                            onClick={() => handleToggle(task.id, !task.completed)}
+                                        >
+                                            {task.completed ? "Mark Undone" : "Mark as Done"}
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
                     ))}
                 </div>
             )}
+
+            <TaskForm
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                task={editingTask}
+            />
         </div>
     );
 }

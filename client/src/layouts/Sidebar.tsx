@@ -169,6 +169,7 @@ export function Sidebar() {
     { to: "/admin/tasks", icon: ClipboardList, label: "Tasks" },
     { to: "/admin/employees", icon: Users, label: "Employees" },
     { to: "/admin/departments", icon: Building2, label: "Departments" },
+    { to: "/admin/announcements", icon: Bell, label: "Announcements" },
     { to: "/admin/reports", icon: FileText, label: "Reports" },
     {
       to: "/admin/notifications",

@@ -33,7 +33,6 @@ export default function Login() {
       const { role } = await login({
         email,
         password,
-        employeeCode,
       });
       success("You're in! 🎉");
       if (role === "admin") {
@@ -97,22 +96,7 @@ export default function Login() {
               />
             </m.div>
 
-            <m.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-2"
-            >
-              <Label htmlFor="employeeCode">Employee Code</Label>
-              <Input
-                id="employeeCode"
-                placeholder="Enter your employee code"
-                value={data.employeeCode}
-                onChange={(e) =>
-                  setData({ ...data, employeeCode: e.target.value })
-                }
-                required
-              />
-            </m.div>
+            {/* Employee Code field removed for simplified login */}
 
             <Button onClick={handleSubmit} type="submit" className="w-full">
               Sign In

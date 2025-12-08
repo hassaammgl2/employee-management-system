@@ -11,6 +11,7 @@ const NotFoundPage = lazy(() => import("@/pages/NotFound"));
 // Admin Pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminTasksPage = lazy(() => import("@/pages/AdminTasks"));
+const AdminAnnouncementsPage = lazy(() => import("@/pages/AdminAnnouncements"));
 const EmployeeManagement = lazy(() => import("@/pages/EmployeeManagement"));
 const DepartmentPage = lazy(() => import("@/pages/Departments"));
 const ReportsPage = lazy(() => import("@/pages/Reports"));
@@ -79,6 +80,14 @@ const routes = [
         element: (
           <MySuspense>
             <DepartmentPage />
+          </MySuspense>
+        ),
+      },
+      {
+        path: "/admin/announcements",
+        element: (
+          <MySuspense>
+            <AdminAnnouncementsPage />
           </MySuspense>
         ),
       },

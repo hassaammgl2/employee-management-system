@@ -5,7 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { useAuthStore } from "@/store/auth";
 import { useTaskStore } from "@/store/task";
 import { useLeaveStore } from "@/store/leave";
-import { Calendar, DollarSign, Briefcase, Bell, CheckCircle2 } from "lucide-react";
+import { useAnnouncementStore } from "@/store/announcement";
+import { Calendar, CheckCircle2, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
@@ -13,11 +14,13 @@ export default function EmployeeDashboard() {
   const { user } = useAuthStore();
   const { tasks, fetchTasks, toggleTask } = useTaskStore();
   const { leaves, fetchMyLeaves } = useLeaveStore();
+  const { announcements, fetchAnnouncements } = useAnnouncementStore();
 
   useEffect(() => {
     fetchTasks();
     fetchMyLeaves();
-  }, [fetchTasks, fetchMyLeaves]);
+    fetchAnnouncements();
+  }, [fetchTasks, fetchMyLeaves, fetchAnnouncements]);
 
   const completedTasks = tasks.filter(t => t.completed).length;
   const progressPercentage = tasks.length ? (completedTasks / tasks.length) * 100 : 0;
@@ -26,17 +29,6 @@ export default function EmployeeDashboard() {
   const pendingLeaves = leaves.filter(l => l.status === "pending").length;
   const rejectedLeaves = leaves.filter(l => l.status === "rejected").length;
   const totalLeaves = leaves.length;
-
-  const announcements = [
-    {
-      id: "1",
-      title: "Team Building Event",
-      message: "Join us for a team building event this Friday at 4 PM",
-      date: "2024-01-15",
-      priority: "medium" as const,
-    },
-    // Mock announcements for now
-  ];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -97,7 +89,7 @@ export default function EmployeeDashboard() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Approved
             </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-success" />
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{approvedLeaves}</div>
@@ -109,7 +101,7 @@ export default function EmployeeDashboard() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Pending
             </CardTitle>
-            <Bell className="h-4 w-4 text-warning" />
+            <Bell className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -124,7 +116,7 @@ export default function EmployeeDashboard() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>My Tasks</CardTitle>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-success" />
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
             <span className="text-sm text-muted-foreground">
               {completedTasks}/{tasks.length} completed
             </span>
@@ -147,7 +139,7 @@ export default function EmployeeDashboard() {
                   key={task.id}
                   className={cn("flex items-start gap-3 p-3 rounded-lg border", task.completed && "bg-muted/50")}
                 >
-                  <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />
+                  <Checkbox checked={task.completed} onCheckedChange={(checked) => toggleTask(task.id, checked as boolean)} className="mt-1" />
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className={cn("font-medium text-sm", task.completed && "line-through text-muted-foreground")}>{task.title}</p>
@@ -174,7 +166,7 @@ export default function EmployeeDashboard() {
               <div className="flex items-center gap-2">
                 <div className="h-2 w-32 rounded-full bg-secondary">
                   <div
-                    className="h-2 rounded-full bg-success"
+                    className="h-2 rounded-full bg-green-600"
                     style={{
                       width: `${totalLeaves ? (approvedLeaves / totalLeaves) * 100 : 0}%`,
                     }}
@@ -202,7 +194,7 @@ export default function EmployeeDashboard() {
               <div className="flex items-center gap-2">
                 <div className="h-2 w-32 rounded-full bg-secondary">
                   <div
-                    className="h-2 rounded-full bg-warning"
+                    className="h-2 rounded-full bg-yellow-600"
                     style={{
                       width: `${totalLeaves ? (pendingLeaves / totalLeaves) * 100 : 0}%`,
                     }}
@@ -219,8 +211,35 @@ export default function EmployeeDashboard() {
             <CardTitle>Announcements</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Announcements logic can be added here once backend supports it */}
-            <p className="text-muted-foreground text-sm">No new announcements (Mock).</p>
+            {announcements.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No announcements.</p>
+            ) : (
+              announcements.slice(0, 3).map((announcement) => (
+                <div
+                  key={announcement.id}
+                  className="p-3 rounded-lg border space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-sm">{announcement.title}</p>
+                    <Badge
+                      variant={
+                        announcement.priority === "high"
+                          ? "destructive"
+                          : announcement.priority === "medium"
+                            ? "default"
+                            : "secondary"
+                      }
+                      className="text-xs capitalize"
+                    >
+                      {announcement.priority}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {announcement.message}
+                  </p>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
