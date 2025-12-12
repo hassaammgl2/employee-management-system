@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import axiosInstance from "../utils/axios";
+import axiosInstance from "../utils/axios.ts";
 import type { User } from "@/types";
 
 export interface Message {
