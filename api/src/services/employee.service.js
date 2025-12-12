@@ -6,12 +6,20 @@ import { dto } from "../utils/Dto.js";
 import { ActivityService } from "./activity.service.js";
 
 export class EmployeeService {
-	static async getAllEmployees() { 
-		const employeeProfiles = await Employee.find()
+	static async getAllEmployees(query = {}) {
+		console.log("getAllEmployees called with query:", query);
+		const filter = {};
+		if (query.department) {
+			filter.department = query.department;
+		}
+		console.log("Using filter:", filter);
+
+		const employeeProfiles = await Employee.find(filter)
 			.populate("user", "name fatherName email employeeCode")
 			.populate("department", "name")
 			.sort({ createdAt: -1 });
 
+		console.log(`Found ${employeeProfiles.length} employees`);
 		return employeeProfiles.map((profile) => {
 			const user = profile.user;
 			return dto.employeeDto(profile, user);

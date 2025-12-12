@@ -10,6 +10,18 @@ export interface Message {
     createdAt: string;
 }
 
+export interface Department {
+    _id: string;
+    name: string;
+}
+
+export interface Teacher { // Reuse Employee/User type effectively
+    _id: string;
+    name: string;
+    avatar?: string;
+    email: string;
+}
+
 export interface Conversation {
     _id: string;
     name?: string;
@@ -30,6 +42,10 @@ interface ChatState {
     isLoadingChats: boolean;
     isLoadingMessages: boolean;
     error: string | null;
+    departments: Department[];
+    availableEmployees: User[];
+    isLoadingDepartments: boolean;
+    isLoadingEmployees: boolean;
 
     fetchChats: () => Promise<void>;
     fetchMessages: (conversationId: string) => Promise<void>;
@@ -39,6 +55,11 @@ interface ChatState {
 
     // Real-time actions
     addMessage: (message: Message) => void;
+
+    // Selection actions
+    fetchDepartments: () => Promise<void>;
+    fetchAvailableEmployees: (departmentId: string) => Promise<void>;
+    clearAvailableEmployees: () => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -48,6 +69,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     isLoadingChats: false,
     isLoadingMessages: false,
     error: null,
+    departments: [],
+    availableEmployees: [],
+    isLoadingDepartments: false,
+    isLoadingEmployees: false,
 
     fetchChats: async () => {
         set({ isLoadingChats: true });
@@ -127,5 +152,43 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }).sort((a: Conversation, b: Conversation) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
         set({ conversations: updatedConversations });
+    },
+
+    fetchDepartments: async () => {
+        set({ isLoadingDepartments: true });
+        try {
+            const { data } = await axiosInstance.get("/departments");
+            set({ departments: data.data, isLoadingDepartments: false });
+        } catch (error) {
+            console.error(error);
+            set({ error: "Failed to fetch departments", isLoadingDepartments: false });
+        }
+    },
+
+    fetchAvailableEmployees: async (departmentId: string) => {
+        set({ isLoadingEmployees: true, availableEmployees: [] });
+        try {
+            const { data } = await axiosInstance.get(`/employees?department=${departmentId}`);
+            // Map employee profile to user structure expected by UI if needed
+            // The API returns employee profile with populated 'user' field.
+            // We need to extract user info or adjust type.
+            // Let's assume we map it to User type
+            const users = data.data.map((emp: any) => ({
+                _id: emp.userId,
+                name: emp.name,
+                email: emp.email,
+                avatar: emp.avatar,
+                role: emp.role,
+                fatherName: emp.fatherName
+            }));
+            set({ availableEmployees: users, isLoadingEmployees: false });
+        } catch (error) {
+            console.error(error);
+            set({ error: "Failed to fetch employees", isLoadingEmployees: false });
+        }
+    },
+
+    clearAvailableEmployees: () => {
+        set({ availableEmployees: [] });
     }
 }));

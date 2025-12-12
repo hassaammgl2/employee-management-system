@@ -16,7 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import axiosInstance from "../utils/axios";
+
 
 export default function Chat() {
     const { user } = useAuthStore();
@@ -33,8 +33,18 @@ export default function Chat() {
     } = useChatStore();
 
     const [newMessage, setNewMessage] = useState("");
-    const [targetEmail, setTargetEmail] = useState("");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+    const [selectedDepartment, setSelectedDepartment] = useState("");
+    const [selectedEmployee, setSelectedEmployee] = useState("");
+
+    const {
+        departments,
+        availableEmployees,
+        fetchDepartments,
+        fetchAvailableEmployees,
+        isLoadingEmployees,
+        clearAvailableEmployees
+    } = useChatStore();
 
     useEffect(() => {
         fetchChats();
@@ -53,6 +63,25 @@ export default function Chat() {
         }
     }, [socket, addMessage]);
 
+    useEffect(() => {
+        if (isNewChatOpen) {
+            fetchDepartments();
+        } else {
+            // Reset selection when closed
+            setSelectedDepartment("");
+            setSelectedEmployee("");
+            clearAvailableEmployees();
+        }
+    }, [isNewChatOpen, fetchDepartments, clearAvailableEmployees]);
+
+    useEffect(() => {
+        if (selectedDepartment) {
+            fetchAvailableEmployees(selectedDepartment);
+        } else {
+            clearAvailableEmployees();
+        }
+    }, [selectedDepartment, fetchAvailableEmployees, clearAvailableEmployees]);
+
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
@@ -62,20 +91,15 @@ export default function Chat() {
     };
 
     const handleStartDM = async () => {
+        if (!selectedEmployee) return;
+
         try {
-            // Simple search by email for now or list all users? 
-            // For simplicity, let's assume we search by email or pick from a list.
-            // Let's implement a quick user search or just input email.
-            const { data } = await axiosInstance.get(`/users?email=${targetEmail}`);
-            if (data.data.users.length > 0) {
-                await startDM(data.data.users[0]._id);
-                setIsNewChatOpen(false);
-                setTargetEmail("");
-            } else {
-                alert("User not found");
-            }
+            await startDM(selectedEmployee);
+            setIsNewChatOpen(false);
+            setSelectedDepartment("");
+            setSelectedEmployee("");
         } catch (error) {
-            console.error("Failed to find user", error);
+            console.error("Failed to start chat", error);
         }
     };
 
@@ -96,12 +120,48 @@ export default function Chat() {
                                 <DialogTitle>New Message</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4 pt-4">
-                                <Input
-                                    placeholder="Search by email..."
-                                    value={targetEmail}
-                                    onChange={(e) => setTargetEmail(e.target.value)}
-                                />
-                                <Button onClick={handleStartDM} className="w-full">Start Chat</Button>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Department</label>
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                                        value={selectedDepartment}
+                                    >
+                                        <option value="">Select Department</option>
+                                        {departments.map((dept) => (
+                                            <option key={dept._id} value={dept._id}>
+                                                {dept.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {selectedDepartment && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Employee</label>
+                                        <select
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            onChange={(e) => setSelectedEmployee(e.target.value)}
+                                            value={selectedEmployee}
+                                            disabled={isLoadingEmployees}
+                                        >
+                                            <option value="">Select Employee</option>
+                                            {availableEmployees.map((emp) => (
+                                                <option key={emp._id} value={emp._id}>
+                                                    {emp.name} ({emp.email})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                <Button
+                                    onClick={handleStartDM}
+                                    className="w-full"
+                                    disabled={!selectedEmployee || isLoadingEmployees}
+                                >
+                                    Start Chat
+                                </Button>
                             </div>
                         </DialogContent>
                     </Dialog>

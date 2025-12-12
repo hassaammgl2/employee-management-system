@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 class Employee {
 	getAllEmployees = asyncHandler(async (req, res) => {
-		const employees = await EmployeeService.getAllEmployees();
+		const employees = await EmployeeService.getAllEmployees(req.query);
 		return ApiResponse.success(res, {
 			message: "Employees fetched successfully",
 			data: employees,
